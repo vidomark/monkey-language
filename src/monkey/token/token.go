@@ -7,6 +7,7 @@ const (
 	// Identifiers + literals
 	IDENTIFIER = "IDENTIFIER" // add, foobar, x, y, ...
 	INT        = "INT"        // 1343456
+	STRING     = "STRING"
 
 	// Operators
 	ASSIGN   = "="
@@ -26,19 +27,21 @@ const (
 	COMMA     = ","
 	SEMICOLON = ";"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
+	LPAREN   = "("
+	RPAREN   = ")"
+	LBRACE   = "{"
+	RBRACE   = "}"
+	LBRACKET = "["
+	RBRACKET = "]"
 
 	// Keywords
-	FUNCTION = "FUNCTION"
-	LET      = "LET"
-	TRUE     = "TRUE"
-	FALSE    = "FALSE"
-	IF       = "IF"
-	ELSE     = "ELSE"
-	RETURN   = "RETURN"
+	FUNCTION = "fn"
+	LET      = "let"
+	TRUE     = "true"
+	FALSE    = "false"
+	IF       = "if"
+	ELSE     = "else"
+	RETURN   = "return"
 )
 
 type Type string
@@ -48,12 +51,12 @@ type Token struct {
 	Literal string
 }
 
-func NewToken(tokenType Type, literal byte) Token {
-	return Token{Type: tokenType, Literal: string(literal)}
+func NewToken(tokenType Type, literal byte) *Token {
+	return &Token{Type: tokenType, Literal: string(literal)}
 }
 
-func NewMultiByteToken(tokenType Type, literal string) Token {
-	return Token{Type: tokenType, Literal: literal}
+func NewMultiByteToken(tokenType Type, literal string) *Token {
+	return &Token{Type: tokenType, Literal: literal}
 }
 
 func LookUpTokenType(identifier string) Type {
