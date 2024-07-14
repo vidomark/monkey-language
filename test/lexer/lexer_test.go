@@ -89,6 +89,19 @@ func TestNextToken(test *testing.T) {
 		token.NewToken(token.INT, '2'),
 		token.NewToken(token.RBRACKET, ']'),
 		token.NewToken(token.SEMICOLON, ';'),
+		token.NewMultiByteToken(token.MACRO, "macro"),
+		token.NewToken(token.LPAREN, '('),
+		token.NewToken(token.IDENTIFIER, 'x'),
+		token.NewToken(token.COMMA, ','),
+		token.NewToken(token.IDENTIFIER, 'y'),
+		token.NewToken(token.RPAREN, ')'),
+		token.NewToken(token.LBRACE, '{'),
+		token.NewToken(token.IDENTIFIER, 'x'),
+		token.NewToken(token.PLUS, '+'),
+		token.NewToken(token.IDENTIFIER, 'y'),
+		token.NewToken(token.SEMICOLON, ';'),
+		token.NewToken(token.RBRACE, '}'),
+		token.NewToken(token.SEMICOLON, ';'),
 		token.NewToken(token.EOF, byte(0)),
 	}
 
@@ -131,5 +144,5 @@ func inputString() string {
 			"foobar"
 			"foo bar"
 			[1, 2];
-`
+			macro(x, y) { x + y; };`
 }

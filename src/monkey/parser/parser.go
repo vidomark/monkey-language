@@ -41,6 +41,7 @@ func New(lexer *lexer.Lexer) *Parser {
 	parser.registerPrefix(token.LBRACKET, parser.parseArrayLiteral)
 	parser.registerPrefix(token.IF, parser.parseIfExpression)
 	parser.registerPrefix(token.FUNCTION, parser.parseFunctionLiteral)
+	parser.registerPrefix(token.MACRO, parser.parseMacroLiteral)
 
 	parser.registerInfix(token.PLUS, parser.parseInfixExpression)
 	parser.registerInfix(token.MINUS, parser.parseInfixExpression)
@@ -120,7 +121,7 @@ func (parser *Parser) parseLetStatement() *ast.LetStatement {
 	}
 
 	parser.nextToken()
-	statement.Expression = parser.parseExpression(ast.LOWEST)
+	statement.Value = parser.parseExpression(ast.LOWEST)
 	if !parser.expectPeek(token.SEMICOLON) {
 		return &statement
 	}
@@ -130,7 +131,7 @@ func (parser *Parser) parseLetStatement() *ast.LetStatement {
 func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: parser.currentToken}
 	parser.nextToken()
-	stmt.Expression = parser.parseExpression(ast.LOWEST)
+	stmt.ReturnValue = parser.parseExpression(ast.LOWEST)
 	if parser.peekTokenIs(token.SEMICOLON) {
 		parser.nextToken()
 	}
@@ -179,7 +180,7 @@ func (parser *Parser) parsePrefixExpression() ast.Expression {
 		Operator: parser.currentToken.Literal,
 	}
 	parser.nextToken()
-	prefixExpression.Expression = parser.parseExpression(ast.PREFIX)
+	prefixExpression.Operand = parser.parseExpression(ast.PREFIX)
 	return &prefixExpression
 }
 
@@ -353,6 +354,24 @@ func (parser *Parser) parseCallArguments() []ast.Expression {
 		return nil
 	}
 	return arguments
+}
+
+func (parser *Parser) parseMacroLiteral() ast.Expression {
+	lit := &ast.MacroLiteral{Token: parser.currentToken}
+
+	if !parser.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	lit.Parameters = parser.parseFunctionParameters()
+
+	if !parser.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	lit.Body = parser.parseBlockStatement()
+
+	return lit
 }
 
 func (parser *Parser) nextToken() {

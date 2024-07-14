@@ -42,6 +42,7 @@ const (
 	IF       = "if"
 	ELSE     = "else"
 	RETURN   = "return"
+	MACRO    = "macro"
 )
 
 type Type string
@@ -75,4 +76,5 @@ var keywords = map[string]Type{
 	"if":     IF,
 	"else":   ELSE,
 	"return": RETURN,
+	"macro":  MACRO,
 }

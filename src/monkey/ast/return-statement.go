@@ -6,8 +6,8 @@ import (
 )
 
 type ReturnStatement struct {
-	Token      *token.Token
-	Expression Expression
+	Token       *token.Token
+	ReturnValue Expression
 }
 
 func (returnStatement *ReturnStatement) statementNode() {}
@@ -19,8 +19,8 @@ func (returnStatement *ReturnStatement) TokenLiteral() string {
 func (returnStatement *ReturnStatement) String() string {
 	var out bytes.Buffer
 	out.WriteString(returnStatement.TokenLiteral() + " ")
-	if returnStatement.Expression != nil {
-		out.WriteString(returnStatement.Expression.String())
+	if returnStatement.ReturnValue != nil {
+		out.WriteString(returnStatement.ReturnValue.String())
 	}
 	return out.String()
 }

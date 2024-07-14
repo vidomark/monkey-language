@@ -8,7 +8,7 @@ import (
 type LetStatement struct {
 	Token      *token.Token
 	Identifier *Identifier
-	Expression Expression
+	Value      Expression
 }
 
 func (statement *LetStatement) statementNode() {}
@@ -22,8 +22,8 @@ func (statement *LetStatement) String() string {
 	out.WriteString(statement.TokenLiteral() + " ")
 	out.WriteString((*statement.Identifier).String())
 	out.WriteString(" = ")
-	if statement.Expression != nil {
-		out.WriteString(statement.Expression.String())
+	if statement.Value != nil {
+		out.WriteString(statement.Value.String())
 	}
 	return out.String()
 }

@@ -57,10 +57,16 @@ var Builtins = map[string]*Builtin{
 		}
 		arr := args[0].(*object.Array)
 		length := len(arr.Elements)
-		newElements := make([]object.Object, length+1, length+1)
+		newElements := make([]object.Object, length+1)
 		copy(newElements, arr.Elements)
 		newElements[length] = args[1]
 		return &object.Array{Elements: newElements}
+	}},
+	"puts": {Function: func(args ...object.Object) object.Object {
+		for _, arg := range args {
+			fmt.Println(arg.Inspect())
+		}
+		return &object.VOID
 	}},
 }
 
@@ -99,14 +105,14 @@ func Eval(node ast.Node, environment *object.Environment) object.Object {
 	case *ast.IfExpression:
 		return evalIfExpression(node, environment)
 	case *ast.LetStatement:
-		expression := Eval(node.Expression, environment)
+		expression := Eval(node.Value, environment)
 		if isError(expression) {
 			return expression
 		}
 		environment.Set(node.Identifier.Value, expression)
 		return expression
 	case *ast.ReturnStatement:
-		returnValue := Eval(node.Expression, environment)
+		returnValue := Eval(node.ReturnValue, environment)
 		if isError(returnValue) {
 			return returnValue
 		}
@@ -118,6 +124,9 @@ func Eval(node ast.Node, environment *object.Environment) object.Object {
 			Environment: environment,
 		}
 	case *ast.CallExpression:
+		if node.Function.TokenLiteral() == "quote" {
+			return quote(node.Arguments[0], environment)
+		}
 		function := Eval(node.Function, environment)
 		if isError(function) {
 			return function
@@ -130,7 +139,7 @@ func Eval(node ast.Node, environment *object.Environment) object.Object {
 
 		return applyArguments(function, args)
 	case *ast.PrefixExpression:
-		operand := Eval(node.Expression, environment)
+		operand := Eval(node.Operand, environment)
 		if isError(operand) {
 			return operand
 		}
@@ -188,8 +197,8 @@ func evalIndexExpression(left, index object.Object) object.Object {
 func evalArrayIndexExpression(array, index object.Object) object.Object {
 	arrayObject := array.(*object.Array)
 	idx := index.(*object.Integer).Value
-	max := int64(len(arrayObject.Elements) - 1)
-	if idx < 0 || idx > max {
+	maximum := int64(len(arrayObject.Elements) - 1)
+	if idx < 0 || idx > maximum {
 		return object.NULL
 	}
 	return arrayObject.Elements[idx]

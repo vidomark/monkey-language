@@ -6,9 +6,9 @@ import (
 )
 
 type PrefixExpression struct {
-	Token      *token.Token
-	Operator   string
-	Expression Expression
+	Token    *token.Token
+	Operator string
+	Operand  Expression
 }
 
 func (prefixExpression *PrefixExpression) expressionNode() {}
@@ -21,7 +21,7 @@ func (prefixExpression *PrefixExpression) String() string {
 	var out bytes.Buffer
 	out.WriteString("(")
 	out.WriteString(prefixExpression.Operator)
-	out.WriteString(prefixExpression.Expression.String())
+	out.WriteString(prefixExpression.Operand.String())
 	out.WriteString(")")
 	return out.String()
 }
