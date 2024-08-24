@@ -3,10 +3,11 @@ package compiler
 type SymbolScope string
 
 const (
-	GlobalScope  SymbolScope = "GLOBAL"
-	LocalScope   SymbolScope = "LOCAL"
-	BuiltinScope SymbolScope = "BUILTIN"
-	FreeScope    SymbolScope = "FREE"
+	GlobalScope   SymbolScope = "GLOBAL"
+	LocalScope    SymbolScope = "LOCAL"
+	BuiltinScope  SymbolScope = "BUILTIN"
+	FreeScope     SymbolScope = "FREE"
+	FunctionScope SymbolScope = "FUNCTION"
 )
 
 type Symbol struct {
@@ -76,4 +77,10 @@ func (symbolTable *SymbolTable) Resolve(identifier string) (Symbol, bool) {
 		return symbolTable.DefineFree(obj), true
 	}
 	return symbol, ok
+}
+
+func (symbolTable *SymbolTable) DefineFunctionName(identifier string) Symbol {
+	symbol := Symbol{Name: identifier, Index: 0, Scope: FunctionScope}
+	symbolTable.store[identifier] = symbol
+	return symbol
 }

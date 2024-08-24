@@ -192,6 +192,11 @@ func (virtualMachine *VirtualMachine) Run() error {
 			default:
 				return fmt.Errorf("calling non-function")
 			}
+		case code.OpCurrentClosure:
+			err := virtualMachine.push(virtualMachine.currentFrame().closure)
+			if err != nil {
+				return err
+			}
 		case code.OpNegate, code.OpBang:
 			err := virtualMachine.executeUnaryOperation(opcode)
 			if err != nil {

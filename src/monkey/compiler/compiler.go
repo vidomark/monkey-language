@@ -78,11 +78,11 @@ func (compiler *Compiler) Compile(node ast.Node) error {
 		}
 		compiler.emit(code.OpPop)
 	case *ast.LetStatement:
+		symbol := compiler.symbolTable.Define(node.Identifier.Value)
 		err := compiler.Compile(node.Value)
 		if err != nil {
 			return err
 		}
-		symbol := compiler.symbolTable.Define(node.Identifier.Value)
 		if symbol.Scope == GlobalScope {
 			compiler.emit(code.OpSetGlobal, symbol.Index)
 		}
@@ -220,6 +220,10 @@ func (compiler *Compiler) Compile(node ast.Node) error {
 		compiler.emit(code.OpCall, len(node.Arguments))
 	case *ast.FunctionLiteral:
 		compiler.enterScope()
+
+		if node.Name != "" {
+			compiler.symbolTable.DefineFunctionName(node.Name)
+		}
 
 		for _, parameter := range node.Parameters {
 			compiler.symbolTable.Define(parameter.(*ast.Identifier).Value)
@@ -394,5 +398,9 @@ func (compiler *Compiler) loadSymbol(symbol Symbol) {
 
 	if symbol.Scope == FreeScope {
 		compiler.emit(code.OpGetFree, symbol.Index)
+	}
+
+	if symbol.Scope == FunctionScope {
+		compiler.emit(code.OpCurrentClosure)
 	}
 }
