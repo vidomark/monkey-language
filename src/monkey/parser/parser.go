@@ -59,7 +59,7 @@ func New(lexer *lexer.Lexer) *Parser {
 	return &parser
 }
 
-func (parser *Parser) ParseProgram() ast.Program {
+func (parser *Parser) ParseProgram() *ast.Program {
 	program := ast.Program{Statements: []ast.Statement{}}
 
 	for parser.currentToken.Type != token.EOF {
@@ -70,7 +70,7 @@ func (parser *Parser) ParseProgram() ast.Program {
 		parser.nextToken()
 	}
 
-	return program
+	return &program
 }
 
 func (parser *Parser) parseStatement() *ast.Statement {
@@ -94,18 +94,18 @@ func (parser *Parser) parseExpression(precedence int) ast.Expression {
 		return nil
 	}
 
-	leftExpression := prefixFun()
+	expression := prefixFun()
 
 	for !parser.peekTokenIs(token.SEMICOLON) && precedence < parser.peekPrecedence() {
 		infix := parser.infixFns[parser.peekToken.Type]
 		if infix == nil {
-			return leftExpression
+			return expression
 		}
 		parser.nextToken()
-		leftExpression = infix(leftExpression)
+		expression = infix(expression)
 	}
 
-	return leftExpression
+	return expression
 }
 
 func (parser *Parser) parseLetStatement() *ast.LetStatement {
@@ -214,7 +214,7 @@ func (parser *Parser) parseArrayLiteral() ast.Expression {
 }
 
 func (parser *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
-	exp := &ast.IndexExpression{Token: parser.currentToken, Left: left}
+	exp := &ast.IndexExpression{Token: parser.currentToken, Expression: left}
 	parser.nextToken()
 	exp.Index = parser.parseExpression(ast.LOWEST)
 	if !parser.expectPeek(token.RBRACKET) {
@@ -224,7 +224,7 @@ func (parser *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 }
 
 func (parser *Parser) parseExpressionList(end token.Type) []ast.Expression {
-	list := []ast.Expression{}
+	var list []ast.Expression
 	if parser.peekTokenIs(end) {
 		parser.nextToken()
 		return list
@@ -290,7 +290,7 @@ func (parser *Parser) parseFunctionLiteral() ast.Expression {
 }
 
 func (parser *Parser) parseFunctionParameters() []ast.Expression {
-	expressions := []ast.Expression{}
+	var expressions []ast.Expression
 
 	if parser.peekTokenIs(token.RPAREN) {
 		parser.nextToken()
@@ -338,7 +338,7 @@ func (parser *Parser) parseCallExpression(function ast.Expression) ast.Expressio
 }
 
 func (parser *Parser) parseCallArguments() []ast.Expression {
-	arguments := []ast.Expression{}
+	var arguments []ast.Expression
 	if parser.peekTokenIs(token.LPAREN) {
 		parser.nextToken()
 		return arguments

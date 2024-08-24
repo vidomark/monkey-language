@@ -3,7 +3,6 @@ package evaluator
 import (
 	"testing"
 	"writing-in-interpreter-in-go/src/monkey/ast"
-	"writing-in-interpreter-in-go/src/monkey/evaluator"
 	"writing-in-interpreter-in-go/src/monkey/lexer"
 	"writing-in-interpreter-in-go/src/monkey/object"
 	"writing-in-interpreter-in-go/src/monkey/parser"
@@ -386,7 +385,7 @@ func TestDefineMacros(t *testing.T) {
 	env := object.NewEnvironment()
 	program := parseProgram(input)
 
-	evaluator.DefineMacros(&program, env)
+	DefineMacros(&program, env)
 
 	if len(program.Statements) != 2 {
 		t.Fatalf("Wrong number of statements. got=%d",
@@ -457,8 +456,8 @@ func TestExpandMacros(t *testing.T) {
 		program := parseProgram(tt.input)
 
 		env := object.NewEnvironment()
-		evaluator.DefineMacros(&program, env)
-		expanded := evaluator.ExpandMacros(&program, env)
+		DefineMacros(&program, env)
+		expanded := ExpandMacros(&program, env)
 
 		if expanded.String() != expected.String() {
 			t.Errorf("not equal. want=%q, got=%q",
@@ -532,7 +531,7 @@ func testNullObject(t *testing.T, obj object.Object) {
 func parseProgram(input string) ast.Program {
 	l := lexer.New(input)
 	p := parser.New(l)
-	return p.ParseProgram()
+	return *p.ParseProgram()
 }
 
 func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
@@ -552,7 +551,7 @@ func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
-	return evaluator.Eval(&program, object.NewEnvironment())
+	return Eval(program, object.NewEnvironment())
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) {

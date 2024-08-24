@@ -1,4 +1,4 @@
-package parser
+package test
 
 import (
 	"fmt"
@@ -178,7 +178,7 @@ func TestParsingIndexExpressions(t *testing.T) {
 	if !ok {
 		t.Fatalf("exp not *ast.IndexExpression. got=%T", stmt.Expression)
 	}
-	testIdentifier(t, indexExp.Left, "myArray")
+	testIdentifier(t, indexExp.Expression, "myArray")
 	testInfixExpression(t, indexExp.Index, 1, "+", 1)
 }
 

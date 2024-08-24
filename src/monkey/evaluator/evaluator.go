@@ -6,68 +6,11 @@ import (
 	"writing-in-interpreter-in-go/src/monkey/object"
 )
 
-var Builtins = map[string]*Builtin{
-	"len": {Function: func(args ...object.Object) object.Object {
-		if len(args) != 1 {
-			return newError("Wrong number of arguments. Got %d. Required 1.", len(args))
-		}
-
-		switch arg := args[0].(type) {
-		case *object.String:
-			return &object.Integer{Value: int64(len(arg.Value))}
-		case *object.Array:
-			return &object.Integer{Value: int64(len(arg.Elements))}
-		default:
-			return newError("argument to `len` not supported, got %s", args[0].Type())
-		}
-	}},
-	"first": {Function: func(args ...object.Object) object.Object {
-		if len(args) != 1 {
-			return newError("wrong number of arguments. got=%d, want=1", len(args))
-		}
-		if args[0].Type() != object.ARRAY {
-			return newError("argument to `first` must be ARRAY, got %s", args[0].Type())
-		}
-		arr := args[0].(*object.Array)
-		if len(arr.Elements) > 0 {
-			return arr.Elements[0]
-		}
-		return object.NULL
-	}},
-	"last": {Function: func(args ...object.Object) object.Object {
-		if len(args) != 1 {
-			return newError("wrong number of arguments. got=%d, want=1", len(args))
-		}
-		if args[0].Type() != object.ARRAY {
-			return newError("argument to `last` must be ARRAY, got %s", args[0].Type())
-		}
-		arr := args[0].(*object.Array)
-		length := len(arr.Elements)
-		if length > 0 {
-			return arr.Elements[length-1]
-		}
-		return object.NULL
-	}},
-	"push": {Function: func(args ...object.Object) object.Object {
-		if len(args) != 2 {
-			return newError("wrong number of arguments. got=%d, want=2", len(args))
-		}
-		if args[0].Type() != object.ARRAY {
-			return newError("argument to `push` must be ARRAY, got %s", args[0].Type())
-		}
-		arr := args[0].(*object.Array)
-		length := len(arr.Elements)
-		newElements := make([]object.Object, length+1)
-		copy(newElements, arr.Elements)
-		newElements[length] = args[1]
-		return &object.Array{Elements: newElements}
-	}},
-	"puts": {Function: func(args ...object.Object) object.Object {
-		for _, arg := range args {
-			fmt.Println(arg.Inspect())
-		}
-		return &object.VOID
-	}},
+var Builtins = map[string]*object.Builtin{
+	"len":   object.GetBuiltinByName("len"),
+	"first": object.GetBuiltinByName("first"),
+	"last":  object.GetBuiltinByName("last"),
+	"push":  object.GetBuiltinByName("push"),
 }
 
 func Eval(node ast.Node, environment *object.Environment) object.Object {
@@ -91,7 +34,7 @@ func Eval(node ast.Node, environment *object.Environment) object.Object {
 		}
 		return &object.Array{Elements: elements}
 	case *ast.IndexExpression:
-		left := Eval(node.Left, environment)
+		left := Eval(node.Expression, environment)
 		if isError(left) {
 			return left
 		}
@@ -178,7 +121,8 @@ func evalIdentifier(identifier *ast.Identifier, environment *object.Environment)
 		return value
 	}
 
-	if builtin, ok := Builtins[identifier.Value]; ok {
+	builtin := object.GetBuiltinByName(identifier.Value)
+	if builtin != nil {
 		return builtin
 	}
 
@@ -346,8 +290,11 @@ func applyArguments(function object.Object, args []object.Object) object.Object 
 		env := extendFunctionEnv(fn, args)
 		evaluated := Eval(fn.Body, env)
 		return unwrapReturnValue(evaluated)
-	case *Builtin:
-		return fn.Function(args...)
+	case *object.Builtin:
+		if result := fn.Function(args...); result != nil {
+			return result
+		}
+		return object.NULL
 	default:
 		return newError("unsupported function type: %T", function)
 	}

@@ -27,8 +27,8 @@ func Start(in io.Reader, out io.Writer) {
 		l := lexer.New(line)
 		p := parser.New(l)
 		program := p.ParseProgram()
-		evaluator.DefineMacros(&program, macroEnv)
-		expanded := evaluator.ExpandMacros(&program, macroEnv)
+		evaluator.DefineMacros(program, macroEnv)
+		expanded := evaluator.ExpandMacros(program, macroEnv)
 		evaluated := evaluator.Eval(expanded, environment)
 		if evaluated != nil {
 			_, _ = io.WriteString(out, evaluated.Inspect())

@@ -6,21 +6,21 @@ import (
 )
 
 type IndexExpression struct {
-	Token *token.Token
-	Left  Expression
-	Index Expression
+	Token      *token.Token
+	Expression Expression
+	Index      Expression
 }
 
-func (ie *IndexExpression) expressionNode() {}
+func (indexExpression *IndexExpression) expressionNode() {}
 
-func (ie *IndexExpression) TokenLiteral() string { return ie.Token.Literal }
+func (indexExpression *IndexExpression) TokenLiteral() string { return indexExpression.Token.Literal }
 
-func (ie *IndexExpression) String() string {
+func (indexExpression *IndexExpression) String() string {
 	var out bytes.Buffer
 	out.WriteString("(")
-	out.WriteString(ie.Left.String())
+	out.WriteString(indexExpression.Expression.String())
 	out.WriteString("[")
-	out.WriteString(ie.Index.String())
+	out.WriteString(indexExpression.Index.String())
 	out.WriteString("])")
 	return out.String()
 }
