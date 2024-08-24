@@ -23,7 +23,8 @@ type VirtualMachine struct {
 
 func New(byteCode *compiler.ByteCode) *VirtualMachine {
 	mainFn := &object.CompiledFunction{Instructions: byteCode.Instructions}
-	mainFrame := NewFrame(mainFn, 0)
+	mainClosure := &object.Closure{Function: mainFn}
+	mainFrame := NewFrame(mainClosure, 0)
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
 	return &VirtualMachine{
@@ -100,6 +101,14 @@ func (virtualMachine *VirtualMachine) Run() error {
 			virtualMachine.currentFrame().ip += 1
 			frame := virtualMachine.currentFrame()
 			virtualMachine.stack[frame.basePointer+int(localIndex)] = virtualMachine.pop()
+		case code.OpGetFree:
+			index := instructions[ip+1]
+			virtualMachine.currentFrame().ip += 1
+			closure := virtualMachine.currentFrame().closure
+			err := virtualMachine.push(closure.FreeVariables[index])
+			if err != nil {
+				return err
+			}
 		case code.OpGetBuiltin:
 			builtinIndex := instructions[ip+1]
 			virtualMachine.currentFrame().ip += 1
@@ -151,13 +160,27 @@ func (virtualMachine *VirtualMachine) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpClosure:
+			constantIndex := binary.BigEndian.Uint16(instructions[ip+1:])
+			freeVariableArity := instructions[ip+3]
+			virtualMachine.currentFrame().ip += 3
+			function := virtualMachine.constants[constantIndex]
+			freeVariables := make([]object.Object, freeVariableArity)
+			for i := 0; i < int(freeVariableArity); i++ {
+				freeVariables[i] = virtualMachine.stack[virtualMachine.sp-int(freeVariableArity)+i]
+			}
+			virtualMachine.sp = virtualMachine.sp - int(freeVariableArity)
+			err := virtualMachine.push(&object.Closure{Function: function.(*object.CompiledFunction), FreeVariables: freeVariables})
+			if err != nil {
+				return err
+			}
 		case code.OpCall:
 			argumentArity := instructions[ip+1]
 			virtualMachine.currentFrame().ip += 1
 			function := virtualMachine.stack[virtualMachine.sp-1-int(argumentArity)]
 			switch callee := function.(type) {
-			case *object.CompiledFunction:
-				err := virtualMachine.callFunction(callee, int(argumentArity))
+			case *object.Closure:
+				err := virtualMachine.callClosure(callee, int(argumentArity))
 				if err != nil {
 					return err
 				}
@@ -377,14 +400,14 @@ func (virtualMachine *VirtualMachine) executeArrayIndex(array, index object.Obje
 	return virtualMachine.push(arrayObject.Elements[i])
 }
 
-func (virtualMachine *VirtualMachine) callFunction(function *object.CompiledFunction, arity int) error {
-	if arity != function.ParameterArity {
+func (virtualMachine *VirtualMachine) callClosure(closure *object.Closure, arity int) error {
+	if arity != closure.Function.ParameterArity {
 		return fmt.Errorf("wrong number of arguments: want=%d, got=%d",
-			function.ParameterArity, arity)
+			closure.Function.ParameterArity, arity)
 	}
-	frame := NewFrame(function, virtualMachine.sp-arity)
+	frame := NewFrame(closure, virtualMachine.sp-arity)
 	virtualMachine.pushFrame(frame)
-	virtualMachine.sp = frame.basePointer + function.LocalVariableArity
+	virtualMachine.sp = frame.basePointer + closure.Function.LocalVariableArity
 	return nil
 }
 

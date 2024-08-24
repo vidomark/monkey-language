@@ -229,19 +229,26 @@ func (compiler *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
+
 		if compiler.lastInstructionIs(code.OpPop) {
 			compiler.replaceLastPopWithReturn()
 		}
 		if !compiler.lastInstructionIs(code.OpReturnValue) {
 			compiler.emit(code.OpReturnVoid)
 		}
+
 		symbolTable, instruction := compiler.leaveScope()
+
+		for _, symbol := range symbolTable.FreeSymbols {
+			compiler.loadSymbol(symbol)
+		}
+
 		function := &object.CompiledFunction{
 			Instructions:       instruction,
 			LocalVariableArity: symbolTable.numDefinitions,
 			ParameterArity:     len(node.Parameters),
 		}
-		compiler.emit(code.OpConstant, compiler.addConstant(function))
+		compiler.emit(code.OpClosure, compiler.addConstant(function), len(symbolTable.FreeSymbols))
 	case *ast.ArrayLiteral:
 		for _, el := range node.Elements {
 			err := compiler.Compile(el)
@@ -383,5 +390,9 @@ func (compiler *Compiler) loadSymbol(symbol Symbol) {
 
 	if symbol.Scope == BuiltinScope {
 		compiler.emit(code.OpGetBuiltin, symbol.Index)
+	}
+
+	if symbol.Scope == FreeScope {
+		compiler.emit(code.OpGetFree, symbol.Index)
 	}
 }

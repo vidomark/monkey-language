@@ -10,6 +10,7 @@ const (
 	FUNCTION          = "FUNCTION"
 	ARRAY             = "ARRAY"
 	COMPILED_FUNCTION = "COMPILED_FUNCTION"
+	CLOSURE           = "CLOSURE"
 	BUILT_IN          = "BUILT_IN"
 	QUOTE             = "QUOTE"
 	MACRO             = "MACRO"
