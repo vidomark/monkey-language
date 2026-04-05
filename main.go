@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
-	"writing-in-interpreter-in-go/src/monkey/repl"
+	"bytelang/src/bytelang/repl"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Hello %s! This is the Monkey programming language!\n",
+	fmt.Printf("Hello %s! This is the Bytelang programming language!\n",
 		currentUser.Username)
 	fmt.Printf("Feel free to type in commands\n")
 	repl.StartRepl(os.Stdout, os.Stdin)

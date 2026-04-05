@@ -1,3 +1,3 @@
-module writing-in-interpreter-in-go
+module bytelang
 
 go 1.22.3
